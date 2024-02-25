@@ -1,4 +1,5 @@
-﻿using Silk.NET.GLFW;
+﻿using OpenGLPlayground;
+using Silk.NET.GLFW;
 using Silk.NET.OpenGL;
 
 internal static class Program
@@ -18,9 +19,15 @@ internal static class Program
         var window = glfw.CreateWindow(640, 480, "My Window", null, null);
         glfw.MakeContextCurrent(window);
 
+        // Set up OpenGL
         _gl = GL.GetApi(glfw.GetProcAddress);
-
         _gl.ClearColor(0.25f, 0.5f, 0.75f, 1.0f);
+
+        // Set the rendering region to the actual screen size
+        glfw.GetFramebufferSize(window, out var width, out var height);
+        _gl.Viewport(0, 0, (uint)width, (uint)height);
+
+        var triangle = new TriangleMesh(_gl);
 
         var shader = MakeShader(Path.Combine("shaders", "vertex.txt"), Path.Combine("shaders", "fragment.txt"));
 
@@ -31,9 +38,12 @@ internal static class Program
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
             _gl.UseProgram(shader);
+            triangle.Draw();
 
             glfw.SwapBuffers(window);
         }
+
+        triangle.Dispose();
 
         _gl.DeleteProgram(shader);
         glfw.Terminate();
