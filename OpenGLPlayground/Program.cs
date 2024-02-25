@@ -1,5 +1,6 @@
 ﻿using OpenGLPlayground;
 using Silk.NET.GLFW;
+using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 
 internal static class Program
@@ -42,6 +43,20 @@ internal static class Program
         _gl.Uniform1(_gl.GetUniformLocation(shader, "material"), 0);
         _gl.Uniform1(_gl.GetUniformLocation(shader, "mask"), 1);
 
+        var quadPosition = new Vector3D<float>(-0.2f, 0.4f, 0.0f);
+        var cameraPosition = new Vector3D<float>(-5.0f, 0.0f, 3.0f);
+        var cameraTarget = new Vector3D<float>(0.0f, 0.0f, 0.0f);
+
+        var modelLocation = _gl.GetUniformLocation(shader, "model");
+        var viewLocation = _gl.GetUniformLocation(shader, "view");
+        var projectionLocation = _gl.GetUniformLocation(shader, "projection");
+
+        var view = Matrix4X4.CreateLookAt(cameraPosition, cameraTarget, new Vector3D<float>(0.0f, 0.0f, 1.0f));
+        _gl.UniformMatrix4(viewLocation, 1, true, view.AsSpan());
+
+        var projection = Matrix4X4.CreatePerspectiveFieldOfView(Scalar.DegreesToRadians(45.0f), 640.0f / 480.0f, 0.1f, 10.0f);
+        _gl.UniformMatrix4(projectionLocation, 1, true, projection.AsSpan());
+
         // Enable alfa blending
         _gl.Enable(EnableCap.Blend);
         _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
@@ -49,6 +64,10 @@ internal static class Program
         while (!glfw.WindowShouldClose(window))
         {
             glfw.PollEvents();
+
+            var model = Matrix4X4.CreateTranslation(quadPosition);
+            model = Matrix4X4.CreateRotationZ(Scalar.DegreesToRadians(10.0f * (float)glfw.GetTime())) * model;
+            _gl.UniformMatrix4(modelLocation, 1, true, model.AsSpan());
 
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
