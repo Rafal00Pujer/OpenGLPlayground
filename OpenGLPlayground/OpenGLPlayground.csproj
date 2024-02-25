@@ -12,12 +12,17 @@
     <PackageReference Include="Silk.NET.GLFW" Version="2.20.0" />
     <PackageReference Include="Silk.NET.OpenGL" Version="2.20.0" />
     <PackageReference Include="Silk.NET.Windowing" Version="2.20.0" />
+    <PackageReference Include="StbImageSharp" Version="2.27.13" />
   </ItemGroup>
 
 	<ItemGroup>
-		<None Include="shaders\*">
+		<None Include="shaders\*;img\*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="img\" />
 	</ItemGroup>
 	
 </Project>

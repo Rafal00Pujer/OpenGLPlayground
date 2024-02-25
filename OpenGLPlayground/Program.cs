@@ -16,6 +16,11 @@ internal static class Program
             return;
         }
 
+        glfw.WindowHint(WindowHintInt.ContextVersionMajor, 3);
+        glfw.WindowHint(WindowHintInt.ContextVersionMinor, 3);
+        glfw.WindowHint(WindowHintOpenGlProfile.OpenGlProfile, OpenGlProfile.Core);
+        glfw.WindowHint(WindowHintBool.OpenGLForwardCompat, true);
+
         var window = glfw.CreateWindow(640, 480, "My Window", null, null);
         glfw.MakeContextCurrent(window);
 
@@ -28,8 +33,18 @@ internal static class Program
         _gl.Viewport(0, 0, (uint)width, (uint)height);
 
         var triangle = new TriangleMesh(_gl);
-
+        var material = new Material(_gl, Path.Combine("img", "marika_matsumoto.jpg"));
+        var mask = new Material(_gl, Path.Combine("img", "mask.jpg"));
         var shader = MakeShader(Path.Combine("shaders", "vertex.txt"), Path.Combine("shaders", "fragment.txt"));
+
+        // Set texture units
+        _gl.UseProgram(shader);
+        _gl.Uniform1(_gl.GetUniformLocation(shader, "material"), 0);
+        _gl.Uniform1(_gl.GetUniformLocation(shader, "mask"), 1);
+
+        // Enable alfa blending
+        _gl.Enable(EnableCap.Blend);
+        _gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
         while (!glfw.WindowShouldClose(window))
         {
@@ -38,12 +53,16 @@ internal static class Program
             _gl.Clear(ClearBufferMask.ColorBufferBit);
 
             _gl.UseProgram(shader);
+            material.Use(0);
+            mask.Use(1);
             triangle.Draw();
 
             glfw.SwapBuffers(window);
         }
 
         triangle.Dispose();
+        material.Dispose();
+        mask.Dispose();
 
         _gl.DeleteProgram(shader);
         glfw.Terminate();
@@ -91,7 +110,7 @@ internal static class Program
         _gl.GetShader(shaderModule, ShaderParameterName.CompileStatus, out int status);
         if (status != (int)GLEnum.True)
         {
-            throw new Exception($"Shader module failed to compile: {_gl.GetShaderInfoLog(shaderModule)},{Environment.NewLine}code:{Environment.NewLine}{shaderSource}");
+            throw new Exception($"Shader module failed to compile: {_gl.GetShaderInfoLog(shaderModule)}file path: {filePath}{Environment.NewLine}{Environment.NewLine}code:{Environment.NewLine}{shaderSource}");
         }
 
         return shaderModule;
