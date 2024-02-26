@@ -64,6 +64,29 @@ internal class Factory(GL gl,
         _entitiesMade++;
     }
 
+    public void MakeGirl(Vector3D<float> position, Vector3D<float> eulers)
+    {
+        var transform = new TransformComponent
+        {
+            Position = position,
+            Eulers = eulers
+        };
+
+        _transformComponents.Add(_entitiesMade, transform);
+
+        var preTransform = Matrix4X4.CreateFromYawPitchRoll(
+            Scalar.DegreesToRadians(90.0f),
+            Scalar.DegreesToRadians(0.0f),
+            Scalar.DegreesToRadians(90.0f));
+
+        var render = MakeObjMesh(Path.Combine("models", "girl.obj"), preTransform);
+        render.Material = MakeTexture(Path.Combine("img", "stargirl.png"));
+
+        _renderComponents.Add(_entitiesMade, render);
+
+        _entitiesMade++;
+    }
+
     private unsafe RenderComponent MakeCubeMesh(Vector3D<float> size)
     {
         var l = size.X;
@@ -134,12 +157,47 @@ internal class Factory(GL gl,
 
         //Normal
         _gl.VertexAttribPointer(2, 3, GLEnum.Float, false, 32, (void*)20);
-        _gl.EnableVertexAttribArray(1);
+        _gl.EnableVertexAttribArray(2);
 
         var render = new RenderComponent
         {
             Vao = vao,
             VertexCount = 36
+        };
+
+        return render;
+    }
+
+    private unsafe RenderComponent MakeObjMesh(string filePath, Matrix4X4<float> preTransform)
+    {
+        var objectMeshFactory = new ObjectMeshFactory(filePath);
+        var vertices = objectMeshFactory.Get(preTransform);
+
+        var vao = _gl.GenVertexArrays(1);
+        _vaos.Add(vao);
+        _gl.BindVertexArray(vao);
+
+        var vbo = _gl.GenBuffers(1);
+        _vbos.Add(vbo);
+        _gl.BindBuffer(GLEnum.ArrayBuffer, vbo);
+        _gl.BufferData<float>(GLEnum.ArrayBuffer, vertices, GLEnum.StaticDraw);
+
+        //Position
+        _gl.VertexAttribPointer(0, 3, GLEnum.Float, false, 32, (void*)0);
+        _gl.EnableVertexAttribArray(0);
+
+        //Texture coordinates
+        _gl.VertexAttribPointer(1, 2, GLEnum.Float, false, 32, (void*)12);
+        _gl.EnableVertexAttribArray(1);
+
+        //Normal
+        _gl.VertexAttribPointer(2, 3, GLEnum.Float, false, 32, (void*)20);
+        _gl.EnableVertexAttribArray(2);
+
+        var render = new RenderComponent
+        {
+            Vao = vao,
+            VertexCount = (uint)vertices.Length / 8
         };
 
         return render;

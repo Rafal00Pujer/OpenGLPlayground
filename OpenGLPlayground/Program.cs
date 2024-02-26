@@ -11,6 +11,8 @@ using var factory = new Factory(app.Gl, app.PhysicsComponents, app.RenderCompone
 
 factory.MakeCube(new Vector3D<float>(3.0f, 0.0f, 0.25f), Vector3D<float>.Zero, new Vector3D<float>(0.0f, 0.0f, 10.0f));
 
+factory.MakeGirl(new Vector3D<float>(5.0f, 0.0f, 0.0f), new Vector3D<float>(0.0f, 0.0f, 180.0f));
+
 var cameraEntity = factory.MakeCamera(Vector3D<float>.UnitZ, Vector3D<float>.Zero);
 var camera = new CameraComponent();
 
